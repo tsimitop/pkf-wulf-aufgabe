@@ -5,20 +5,19 @@ export async function fetchWidgets() {
   return res.json();
 }
 
-export async function createWidget(location: string) {
+export async function createWidget(lat: number, lon: number) {
   const res = await fetch(`${API_BASE}/widgets`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ location }),
+    body: JSON.stringify({ lat, lon }),
   });
   return res.json();
 }
 
 export async function deleteWidget(id: string) {
   const res = await fetch(`${API_BASE}/widgets/${id}`, { method: "DELETE" });
-//   return res.json();
-if (!res.ok) {
-	throw new Error(`Failed to delete widget with id ${id}`);
-}
-return true;
+  if (!res.ok) {
+  	throw new Error(`Failed to delete widget with id ${id}`);
+  }
+  return true;
 }
