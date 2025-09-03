@@ -2,6 +2,10 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import { join } from "path";
+import { connectDB, Widget } from "./mongo.js";
+import 'dotenv/config';
+import { fetchWeatherApi } from "openmeteo";
+// import { error } from "console";
 
 const fastify = Fastify({ logger: true });
 
@@ -14,40 +18,65 @@ await fastify.register(fastifyStatic, {
 	prefix: "/",
 })
 
-// In-memory widget storage
-let widgets = [];
-let idCounter = 1;
+await connectDB();
 
-// Routes
-
-// Test backend
 fastify.get("/", async (request, reply) => {
   return { message: "Backend is running" };
 });
 
-// GET /widgets - list all widgets
 fastify.get("/widgets", async (request, reply) => {
-  return widgets;
+  const widgets = await Widget.find();
+  return { widgets };
+//   return Widget.find();
 });
 
-// POST /widgets - create a new widget
 fastify.post("/widgets", async (request, reply) => {
-  const { location } = request.body;
-  if (!location) {
-    return reply.status(400).send({ error: "Location is required" });
-  }
+	const { name, lat, lon } = request.body;
 
-  const newWidget = { _id: idCounter.toString(), location, createdAt: new Date() };
-  idCounter++;
-  widgets.push(newWidget);
-  return reply.status(201).send(newWidget);
+	if (!lat || !lon ) {
+		return reply.code(400).send({ error: "latitude and longitude required to fetch weather api" });
+	}
+
+	const params = {
+		latitude: Number(lat),
+		longitude: Number(lon),
+		current_weather: true
+	};
+
+	const url = "https://api.open-meteo.com/v1/forecast";
+
+	try {
+		const responses = await fetchWeatherApi(url, params);
+		const response = responses[0];
+
+		const current = response.current();
+		const temperature = current.variables(0).value();
+		const widget = new Widget({ 
+			city: name,
+			location: `${lat},${lon}`,
+			temperature,
+		});
+
+		const elevation = response.elevation();
+		const timezone = response.timezone();
+		const daily = response.daily();
+		const hourly = response.hourly();
+
+		console.log(`Current is: ${current}`);
+		await widget.save();
+		return { widget };
+	} catch (err) {
+		console.error(err);
+		return reply.code(500).send({ error: "Failed to fetch weather api" });
+	}
 });
 
 // DELETE /widgets/:id - delete a widget
 fastify.delete("/widgets/:id", async (request, reply) => {
   const { id } = request.params;
-  widgets = widgets.filter(w => w._id !== id);
+  await Widget.findByIdAndDelete(id);
   return reply.status(204).send();
+//   return { success: true };
 });
 
 // Start server
@@ -59,3 +88,4 @@ fastify.listen({ port: PORT, host: "0.0.0.0" }, (err, address) => {
   }
   console.log(`Backend running at ${address}`);
 });
+

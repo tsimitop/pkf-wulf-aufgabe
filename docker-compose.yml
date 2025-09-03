@@ -5,6 +5,9 @@ services:
       - "5000:5000"
     env_file:
       - .env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     depends_on:
       - mongo
 
@@ -14,6 +17,9 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
 
@@ -27,4 +33,6 @@ services:
   
 
 volumes:
+  backend:
+  frontend:
   mongo_data:

@@ -4,6 +4,7 @@ import WidgetCard from "./WidgetCard";
 
 type Widget = {
   _id: string;
+  city: string;
   location: string;
   temperature: number;
 };
@@ -24,6 +25,7 @@ export default function WidgetList({ widgets, onDelete }: WidgetListProps) {
         <WidgetCard
           key={w._id}
           id={w._id}
+          name={w.city}
           location={w.location}
           temperature={w.temperature}
           onDelete={onDelete}
