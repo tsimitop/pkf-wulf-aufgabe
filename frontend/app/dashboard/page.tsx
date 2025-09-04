@@ -15,54 +15,64 @@ export default function Dashboard() {
   }, []);
 
   const handleDelete = async (id: string) => {
-	try {
-		await deleteWidget(id);
-		setWidgets(widgets.filter(w => w._id !== id));
-	} catch (err) {
-		console.error(err);
-	}
+	  try {
+	  	await deleteWidget(id);
+	  	setWidgets(widgets.filter(w => w._id !== id));
+	  } catch (err) {
+	  	console.error(err);
+	  }
   };
 
   const handleCreate = async (name: string, lat: number, lon: number) => {
     const newWidget = await createWidget(name, lat, lon);
-	// console.log('New widget:' + newWidget);
     setWidgets([...widgets, newWidget]);
-	// console.log(widgets);
   };
 
   const filteredCities = cities.filter((city) =>
-	city.name.toLowerCase().includes(query.toLowerCase())
+	  city.name.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
 
-      {/* Dropdown to select city */}
-      <select
-        value={selectedCity?.name || ""}
-        onChange={(e) => {
-          const city = cities.find(c => c.name === e.target.value);
-          if (city) setSelectedCity(city || null);
-        }}
-        className="border p-2 mb-4 bg-black text-green-400"
-      >
-        {cities
-		.map((city) => (
-          <option key={city.name} value={city.name}>
-            {city.name}
-          </option>
-        ))}
-      </select>
+      {/* Searchable city input */}
+      <div className="flex items-center gap-2 max-w-md">
+        <div className="relative flex-2">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search city..."
+            className="border p-2 w-full bg-black text-green-400"
+          />
+          {query && filteredCities.length > 0 && (
+            <ul className="absolute w-full bg-black border mt-1 max-h-40 overflow-auto text-green-400 z-10">
+              {filteredCities.map((city) => (
+                <li
+                  key={city.name}
+                  onClick={() => {
+                    setSelectedCity(city);
+                    setQuery(city.name);
+                  }}
+                  className="p-2 cursor-pointer hover:bg-green-400 hover:text-black"
+                >
+                  {city.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-      <button
-        onClick={() =>
-          handleCreate(selectedCity.name, selectedCity.latitude, selectedCity.longitude)
-        }
-        className="ml-2 px-4 py-2 bg-purple-700 text-green-400 rounded hover:bg-purple-700"
-      >
-        Add city
-      </button>
+        <button
+          onClick={() =>
+            handleCreate(selectedCity.name, selectedCity.latitude, selectedCity.longitude)
+          }
+          className="ml-2 px-4 py-2 bg-purple-700 text-green-400 rounded hover:bg-purple-700"
+        >
+          Add city
+        </button>
+      </div>
 
       <div className="mt-6">
         <WidgetList widgets={widgets} onDelete={handleDelete} />
