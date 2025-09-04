@@ -2,15 +2,12 @@ const API_BASE = "http://localhost:5000";
 
 export async function fetchWidgets() {
   try {
-	const res = await fetch(`${API_BASE}/widgets`);
-	const { widgets } = await res.json();
-	return widgets ?? [];
-	// const data = await res.json();
-	// return res.json();
-	// return Array.isArray(data) ? data : [];
+	  const res = await fetch(`${API_BASE}/widgets`);
+	  const { widgets } = await res.json();
+	  return widgets ?? [];
   } catch (error) {
-	console.log(`Error: ${error}`);
-	return [];
+	  console.log(`Error: ${error}`);
+	  return [];
   }
 }
 
