@@ -7,7 +7,7 @@ import WidgetList from "@/components/WidgetList";
 
 export default function Dashboard() {
   const [widgets, setWidgets] = useState<any[]>([]);
-  const [selectedCity, setSelectedCity] = useState<WeatherElement>(cities[0]);
+  const [selectedCity, setSelectedCity] = useState<WeatherElement | null>(cities[0]);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -28,8 +28,11 @@ export default function Dashboard() {
     setWidgets([...widgets, newWidget]);
   };
 
+  const widgetCityNames = widgets.map((w) => w.city.toLowerCase());
+
   const filteredCities = cities.filter((city) =>
-	  city.name.toLowerCase().includes(query.toLowerCase())
+	  city.name.toLowerCase().includes(query.toLowerCase()) &&
+    !widgetCityNames.includes(city.name.toLowerCase())
   );
 
   return (
@@ -65,9 +68,17 @@ export default function Dashboard() {
         </div>
 
         <button
-          onClick={() =>
-            handleCreate(selectedCity.name, selectedCity.latitude, selectedCity.longitude)
-          }
+          onClick={() => {
+            if (
+              selectedCity &&
+              !widgets.some(w => w.city.toLowerCase() === selectedCity.name.toLowerCase())
+            ) {
+              handleCreate(selectedCity.name, selectedCity.latitude, selectedCity.longitude)
+              setQuery("");
+              setSelectedCity(null);
+            }
+          }}
+          disabled={!selectedCity}
           className="ml-2 px-4 py-2 bg-purple-700 text-green-400 rounded hover:bg-purple-700"
         >
           Add city
